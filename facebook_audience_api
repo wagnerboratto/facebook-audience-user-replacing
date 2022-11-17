@@ -1,0 +1,47 @@
+pip install facebook_business
+
+import pandas as pd
+from facebook_business.adobjects.customaudience import CustomAudience
+from facebook_business.api import FacebookAdsApi
+from random import randint
+
+app_id = '{ap_id}'
+app_secret = '{app_secret}'
+access_token = '{acess_token}'
+account_id = 'act_{account_id}'
+
+FacebookAdsApi.init(access_token=access_token)
+
+
+audience_id = {audience_id}
+audience = CustomAudience(audience_id)
+
+df = pd.read_csv('contacts.csv')
+
+audience_data = df[['email','phone']].values.tolist()         # create a list with email and phone data from the csv.
+
+schema = [                                                    # in this case, we need to use multikeyschema
+            CustomAudience.Schema.MultiKeySchema.email,
+            CustomAudience.Schema.MultiKeySchema.phone,
+        ]
+
+
+total = len(dados)
+limit = 9999                                                  # Facebook API has a limit of 10k registers for each batch_seq
+rounds = (total//limit)+1
+
+batch_seq = 1
+last_batch_flag = False
+session_id = randint(1000000, 9999999)                        # Creating session ID
+
+for x in range((rounds)):
+  session_a = {
+    "session_id": session_id,
+    "batch_seq": batch_seq,
+    "last_batch_flag": last_batch_flag
+  }
+
+  payload = audience.format_params(schema, audience_data[(x*limit):((x+1)*limit)], is_raw=True, session=session_a)
+  audience.create_users_replace(params=payload)
+
+  batch_seq += 1
